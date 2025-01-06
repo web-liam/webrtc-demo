@@ -4,7 +4,7 @@ import initApp from './config.js'
 // 初始化应用
 let io = initApp(3338)
 let members = []
-let links = [] // 链接列表
+// let links = [] // 链接列表
 
 // 监听连接
 io.on(SOCKET_ON_SYS.CONNECTION, (socket) => {
@@ -30,7 +30,12 @@ io.on(SOCKET_ON_SYS.CONNECTION, (socket) => {
   socket.on(SOCKET_EMIT.LINK_USER, (room, data) => {
     console.log(`[INFO]SOCKET_EMIT.LINK_USER: room ${room} data:`,data)
     socket.to(room).emit(SOCKET_EMIT.LINK_USER, room, data)
-    links.push(data)
+    // links.push(data)
+  })
+
+  socket.on(SOCKET_EMIT.MESSAGE, (room, data) => {
+    console.log(`[INFO]收到消息: ${data}, 来自于房间: ${room}`)
+    socket.to(room).emit(SOCKET_EMIT.MESSAGE, room, data)
   })
 
   // 断开连接了

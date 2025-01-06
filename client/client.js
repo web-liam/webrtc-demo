@@ -13,9 +13,11 @@ let dataChannel ;
 btnConnect.onclick = () => {
   room = document.querySelector('input#room').value
   username = document.querySelector('input#username').value
+  let server = document.querySelector('input#wsServer').value
+  console.log('server:',server) // http://localhost:3338
   // 连接server 携带username和room
-  socket = io('http://localhost:3338',{
-    path: '/rtc',
+  socket = io(server,{
+    path: '/rtc', //rtc
     query: { username, room },
   }).connect()
 

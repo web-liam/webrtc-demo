@@ -11,7 +11,7 @@ export default function initApp(port) {
   let http_server = http.createServer(app);
   http_server.listen(port);
   let io = new IO(http_server, {
-    path: "/rtc",
+    path: "/rtc", // rtc
     // 允许跨域访问
     cors: {
       origin: "*"

@@ -20,6 +20,8 @@ export const SOCKET_EMIT = {
   SYS_USER_LIST: 'userlist',
   /** 离开房间 */
   LEAVE: 'leave',
+  /** 发送消息 */
+  MESSAGE: 'message',
   /** 链接某人 */
   LINK_USER: 'linkuser',
 }
