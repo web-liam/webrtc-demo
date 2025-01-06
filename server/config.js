@@ -6,10 +6,10 @@ import { Server as IO } from "socket.io";
  * @param app
  * @returns
  */
-export default function initApp() {
+export default function initApp(port) {
   let app = express();
   let http_server = http.createServer(app);
-  http_server.listen(3338);
+  http_server.listen(port);
   let io = new IO(http_server, {
     path: "/rtc",
     // 允许跨域访问

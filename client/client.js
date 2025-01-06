@@ -8,6 +8,7 @@ let socket
 let room
 let username
 let localPc ;
+let dataChannel ;
 
 btnConnect.onclick = () => {
   room = document.querySelector('input#room').value
@@ -65,8 +66,9 @@ btnConnect.onclick = () => {
       localPc = getlocalPc()
       localPc.onicecandidate = (event) => {
         console.log('sendAnswer.localPc:onicecandidate')
-        onicecandidateSendAnswer(event,socket,room)
+        onicecandidateSendAnswer(event,socket,room,user)
       }
+      openDataChannel(localPc, username,receiveMessage)
       sendAnswer(socket,localPc,{offer,user})
     })
 
@@ -79,8 +81,9 @@ btnConnect.onclick = () => {
     })
 
     // candidate回调
-    socket.on(SOCKET_ON_RTC.CANDIDATE, async ({ pc, candidate }) => {
-      console.log(`on-CANDIDATE:接收到${pc}candidate`, candidate)
+    socket.on(SOCKET_ON_RTC.CANDIDATE, async ({ pc, candidate ,user}) => {
+      console.log(`on-CANDIDATE:接收到${pc}-candidate`, candidate)
+      if (username != user.to && username != user.from) return;
       // 回调显示
       // if (!remoteVideoRef.value) return
       // let video = remoteVideoRef.value.$el
@@ -97,7 +100,8 @@ btnConnect.onclick = () => {
 btnSend.onclick = () => {
   var data = inputArea.value
   data = username + ':' + data
-  socket.emit('message', room, data)
+  // socket.emit('message', room, data)
+  dataChannel?.send(data)
   inputArea.value = ''
 }
 
@@ -110,9 +114,17 @@ btnLinkP2p.onclick = () => {
   localPc = getlocalPc()
   let data = {"from":username, "to":toUser}
   localPc.onicecandidate = (event) => {
-    console.log('sendOffer.localPc:onicecandidate')
-    onicecandidateSendOffer(event,socket,room)
+    // console.log('sendOffer.localPc:onicecandidate')
+    onicecandidateSendOffer(event,socket,room,data)
   }
+  openDataChannel(localPc, username,receiveMessage)
   sendOffer(socket,localPc,data)
   socket.emit('linkuser', room, data)
+}
+
+function receiveMessage(data) {
+  console.log('[INFO]Message from server ', data)
+  const outputArea = document.querySelector('textarea#output')
+  outputArea.scrollTop = outputArea.scrollHeight //窗口总是显示最后的内容
+  outputArea.value = outputArea.value + data + '\r'
 }

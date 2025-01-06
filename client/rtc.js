@@ -41,23 +41,25 @@ function getlocalPc() {
     return new RTCPeerConnection(rtcConfig)
 }
 
-function onicecandidateSendOffer(event,socket,room)  {
-    console.log('sendOffer.localPc:', event.candidate, event)
+function onicecandidateSendOffer(event,socket,room,user)  {
+    console.log('[INFO]onicecandidateSendOffer:', event.candidate, event)
     // 回调时，将自己candidate发给对方，对方可以直接addIceCandidate(candidate)添加可以获取流
     if (event.candidate)
       socket.emit(SOCKET_ON_RTC.CANDIDATE, room, {
         pc: 'local',
         candidate: event.candidate,
+        user:user,
       })
   }
 
-  function  onicecandidateSendAnswer (event,socket,room) {
-    console.log('sendAnswer.localPc:', event.candidate, event)
+  function  onicecandidateSendAnswer (event,socket,room,user) {
+    console.log('[INFO] onicecandidateSendAnswer:', event.candidate, event)
     // 回调时，将自己candidate发给对方，对方可以直接addIceCandidate(candidate)添加可以获取流
     if (event.candidate)
       socket.emit(SOCKET_ON_RTC.CANDIDATE, room, {
         pc: 'remote',
         candidate: event.candidate,
+        user:user,
       })
   }
 
@@ -65,7 +67,7 @@ const sendOffer = async (socket,localPc,user) => {
     console.log("sendOffer:",user)
     // 初始化当前视频
     // let localPc = new RTCPeerConnection(rtcConfig)
-    openDataChannel(localPc, username)
+    // openDataChannel(localPc, username)
     // // 添加RTC流
     // localStream.getTracks().forEach((track) => {
     //   localPc.addTrack(track, localStream)
@@ -90,7 +92,7 @@ const sendOffer = async (socket,localPc,user) => {
   const sendAnswer = async (socket,localPc,{offer,user}) => {
     console.log("sendAnswer",offer,user)
     // let localPc = new RTCPeerConnection(rtcConfig)
-    openDataChannel(localPc, username)
+    // openDataChannel(localPc, username)
     // 添加RTC流
     // localStream.getTracks().forEach((track) => {
     //   localPc.addTrack(track, localStream)
@@ -111,19 +113,23 @@ const sendOffer = async (socket,localPc,user) => {
     socket.emit(SOCKET_ON_RTC.ANSWER, room, {answer,user})
   }
 
-   let dataChannel ;
-  const openDataChannel = (localPc, username) => {
+//   let dataChannel ;
+  const openDataChannel = (localPc, username,receiveMessageCb) => {
     dataChannel = localPc.createDataChannel('test')
     // datachannel通道打开 开始发送消息
     // dataChannel.onopen = () => sendMessage(username)
     dataChannel.onopen =() => {
-        dataChannel?.send("hello,"+username)
+        dataChannel?.send(username+":online")
     }
     localPc.ondatachannel = (event) => {
       // 成功拿到 RTCDataChannel
       const dataChannel = event.channel
       dataChannel.onmessage = (event) => {//receiveMessage(event.data)
-        console.log("onmessage:",event.data)
+        console.log("[INFO]onmessage:",event.data)
+        if (receiveMessageCb) {
+          receiveMessageCb(event.data)
+        }
       }
     }
+
   }

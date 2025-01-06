@@ -2,7 +2,7 @@ import { SOCKET_EMIT, SOCKET_ON_SYS } from './enum.js'
 import SocketRtc from './on.js'
 import initApp from './config.js'
 // 初始化应用
-let io = initApp()
+let io = initApp(3338)
 let members = []
 let links = [] // 链接列表
 
@@ -12,11 +12,11 @@ io.on(SOCKET_ON_SYS.CONNECTION, (socket) => {
   // 获取socket连接参数 username和room
   const username = query.username
   const room = query.room
-  console.log(`${room}----${username}----(连接)`)
-  if (members.length === 2) {
-    console.log('仅支持两人加入房间')
-    return
-  }
+  console.log(`[INFO]CONNECTION room:${room}----${username}----(请求连接)`)
+  // if (members.length === 2) {
+  //   console.log('仅支持两人加入房间')
+  //   return
+  // }
   // 连接管理
   let user = { sid: socket.id, username , room }
   members.push(user)
@@ -25,17 +25,17 @@ io.on(SOCKET_ON_SYS.CONNECTION, (socket) => {
   // 每次连接向房间发送用户列表
   io.to(room).emit(SOCKET_EMIT.SYS_USER_LIST, members)
   // 管理rtc的监听事件
-  SocketRtc(socket)
+  SocketRtc(socket,username)
   
   socket.on(SOCKET_EMIT.LINK_USER, (room, data) => {
-    console.log(`请求链接消息:  来自于房间 ${room} data:`,data)
+    console.log(`[INFO]SOCKET_EMIT.LINK_USER: room ${room} data:`,data)
     socket.to(room).emit(SOCKET_EMIT.LINK_USER, room, data)
     links.push(data)
   })
 
   // 断开连接了
   socket.on(SOCKET_ON_SYS.DISCONNECT, () => {
-    console.log(`----${username}----(断开连接)`)
+    console.log(`[INFO]SOCKET_ON_SYS.DISCONNECT: ${username}----(断开连接)`)
     members = members.filter(m => m.username !== user.username)
     // 每次连接发送用户列表
     io.to(room).emit(SOCKET_EMIT.SYS_USER_LIST, members)
