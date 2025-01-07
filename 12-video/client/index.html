@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RTC Demo</title>
+</head>
+<body>
+  <h1>RTC 视频聊天 Demo</h1>
+  <div>
+    <label>服务器: </label>
+    <input type=text id="wsServer" value="http://localhost:3338" style="width: 500px;"></input>
+  </div>
+  <div>
+    <label>用户名: </label>
+    <input type=text id="username" value="user1"></input>
+    <label>房间: </label>
+    <input type=text id="room" value="1"></input>
+    <button id="connect">连接服务器</button>
+    <button id="leave" disabled>断开服务器</button>
+  </div>
+  <div>
+    <label>在线用户: </label>
+    <div id="users"></div>
+  </div>
+  <div>
+    <label>链接用户: </label>
+    <input type=text id="linkuser"></input>
+    <button id="linkP2p">连接P2P</button>
+    <button id="leaveP2p" disabled>断开P2P</button>
+  </div>  
+  <div>
+    <label>文件: </label>
+    <input type="file" id="fileInput" />
+    <button id="sendFile">P2P发送文件</button>
+    <div id="log"></div>
+    <a id="downloadLink" style="display: none">下载文件</a>
+  </div>
+  <div>
+    <label>视频聊天: </label>
+    <div>
+      <div style="width: 49%;float: left; height: 200px; border-style: dotted;">
+        <label>本地视频: </label>
+        <video  style="height: 150px;" id="localVideo" autoplay muted>
+          <source type="video/mp4" />
+        </video>
+      </div>
+      <div style="width: 49%;float: right;height: 200px;border-style: dotted;">
+        <label>远程视频: </label>
+        <video  style="height: 150px;" id="remoteVideo" autoplay >
+          <source type="video/mp4" />
+        </video>
+    </div>
+    <div><button id="startVideoChat">开始视频</button> <button id="useVideo">使用视频</button>
+    </div>
+    
+  </div>
+  <div>
+    <label>收到消息: </label><br>
+    <textarea disabled style="line-height: 1.5;" id="output" rows="8" cols="60"></textarea>
+  </div>
+  <div>
+    <label>发送消息: </label><br>
+    <textarea disabled id="input" rows="3" cols="60"></textarea>
+  </div>
+  <div>
+    <button id="send">发送</button>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+  <script src="./rtc.js"></script>
+  <script src="./client.js"></script>
+</body>
+</html>
