@@ -67,21 +67,22 @@ btnConnect.onclick = () => {
   })
 
   // 接收offer创建answer转发
-    socket.on(SOCKET_ON_RTC.OFFER, async ({offer,user}) => {
+    socket.on(SOCKET_ON_RTC.OFFER, async (data) => {
+      const {offer,user} = data;
       console.log(`on-OFFER.接收到offer`, offer,user)
       if (username != user.to) return;
-      localPc = getlocalPc()
+      localPc = creatPeerConn()
       localPc.onicecandidate = (event) => {
         console.log('sendAnswer.localPc:onicecandidate')
-        onicecandidateSendAnswer(event,socket,room,user)
+        onicecandidateCb(event,socket,"remote",user)
       }
       chatChannel = createDataChannel(localPc, "chat",null, null,receiveMessage)
-      // openDataChannel(localPc, username,receiveMessage)
-      sendAnswer(socket,localPc,{offer,user})
+      sendAnswer(socket,localPc,data)
     })
 
     // 接收answer
-    socket.on(SOCKET_ON_RTC.ANSWER, async ({answer,user}) => {
+    socket.on(SOCKET_ON_RTC.ANSWER, async (data) => {
+      const {answer,user} = data;
       console.log(`on-ANSWER.接收到answer`, answer,user)
       if (username != user.from) return;
       // 完善本地remote描述
@@ -89,7 +90,8 @@ btnConnect.onclick = () => {
     })
 
     // candidate回调
-    socket.on(SOCKET_ON_RTC.CANDIDATE, async ({ pc, candidate ,user}) => {
+    socket.on(SOCKET_ON_RTC.CANDIDATE, async (data) => {
+      const { pc, candidate ,user} = data;
       console.log(`on-CANDIDATE:接收到${pc}-candidate`, candidate)
       if (username != user.to && username != user.from) return;
       // 回调显示
@@ -118,17 +120,19 @@ btnLeave.onclick = () => {
 }
 
 btnLinkP2p.onclick = () => {
-  toUser = document.querySelector('input#linkuser').value
-  localPc = getlocalPc()
-  let data = {"from":username, "to":toUser}
-  localPc.onicecandidate = (event) => {
-    // console.log('sendOffer.localPc:onicecandidate')
-    onicecandidateSendOffer(event,socket,room,data)
+  let toUser = document.querySelector('input#linkuser').value
+  if (!toUser || toUser == username) {
+    alert('请输入对方用户名')
+    return
   }
-  // openDataChannel(localPc, username,receiveMessage)
+  localPc = creatPeerConn()
+  let user = {"from":username, "to":toUser,"room":room}
+  localPc.onicecandidate = (event) => {
+    onicecandidateCb(event,socket,"local",user)
+  }
   chatChannel = createDataChannel(localPc, "chat",null, null,receiveMessage)
-  sendOffer(socket,localPc,data)
-  socket.emit('linkuser', room, data)
+  sendOffer(socket,localPc,user)
+  socket.emit('linkuser', room, user)
 }
 
 function receiveMessage(data) {
@@ -142,3 +146,5 @@ const log = (message) => {
   const logDiv = document.getElementById('log');
   logDiv.innerHTML += `<p>${message}</p>`;
 };
+
+console.log('[INFO] client.js loaded 170959')

@@ -37,51 +37,23 @@ const rtcConfig = {
     LINK_USER: 'linkuser',
   };
 
-function getlocalPc() {
+function creatPeerConn() {
     return new RTCPeerConnection(rtcConfig)
 }
 
-function onicecandidateSendOffer(event,socket,room,user)  {
-    console.log('[INFO]onicecandidateSendOffer:', event.candidate, event)
+function onicecandidateCb(event,socket,pc,user)  {
+    console.log('[INFO]onicecandidate:'+pc, event.candidate)
     // 回调时，将自己candidate发给对方，对方可以直接addIceCandidate(candidate)添加可以获取流
     if (event.candidate)
-      socket.emit(SOCKET_ON_RTC.CANDIDATE, room, {
-        pc: 'local',
-        candidate: event.candidate,
-        user:user,
-      })
-  }
-
-  function  onicecandidateSendAnswer (event,socket,room,user) {
-    console.log('[INFO] onicecandidateSendAnswer:', event.candidate, event)
-    // 回调时，将自己candidate发给对方，对方可以直接addIceCandidate(candidate)添加可以获取流
-    if (event.candidate)
-      socket.emit(SOCKET_ON_RTC.CANDIDATE, room, {
-        pc: 'remote',
+      socket.emit(SOCKET_ON_RTC.CANDIDATE, user.room, {
+        pc: pc,//'local',
         candidate: event.candidate,
         user:user,
       })
   }
 
 const sendOffer = async (socket,localPc,user) => {
-    console.log("sendOffer:",user)
-    // 初始化当前视频
-    // let localPc = new RTCPeerConnection(rtcConfig)
-    // openDataChannel(localPc, username)
-    // // 添加RTC流
-    // localStream.getTracks().forEach((track) => {
-    //   localPc.addTrack(track, localStream)
-    // })
-    // 给当前RTC流设置监听事件(协议完成回调)
-    // localPc.onicecandidate = (event) => {
-    //   console.log('sendOffer.localPc:', event.candidate, event)
-    //   // 回调时，将自己candidate发给对方，对方可以直接addIceCandidate(candidate)添加可以获取流
-    //   if (event.candidate)
-    //     socket.emit(SOCKET_ON_RTC.CANDIDATE, room, {
-    //       pc: 'local',
-    //       candidate: event.candidate,
-    //     })
-    // }
+    console.log("[INFO]sendOffer:",user)
     // 发起方：创建offer(成功将offer的设置当前流，并发送给接收方)
     let offer = await localPc.createOffer()
     // 建立连接，此时就会触发onicecandidate，然后注册ontrack
@@ -89,24 +61,9 @@ const sendOffer = async (socket,localPc,user) => {
     socket.emit(SOCKET_ON_RTC.OFFER, room, {"offer":offer,"user":user})
   }
 
-  const sendAnswer = async (socket,localPc,{offer,user}) => {
-    console.log("sendAnswer",offer,user)
-    // let localPc = new RTCPeerConnection(rtcConfig)
-    // openDataChannel(localPc, username)
-    // 添加RTC流
-    // localStream.getTracks().forEach((track) => {
-    //   localPc.addTrack(track, localStream)
-    // })
-    // 给当前RTC流设置监听事件(协议完成回调)
-    // localPc.onicecandidate = (event) => {
-    //   console.log('sendAnswer.localPc:', event.candidate, event)
-    //   // 回调时，将自己candidate发给对方，对方可以直接addIceCandidate(candidate)添加可以获取流
-    //   if (event.candidate)
-    //     socket.emit(SOCKET_ON_RTC.CANDIDATE, room, {
-    //       pc: 'remote',
-    //       candidate: event.candidate,
-    //     })
-    // }
+  const sendAnswer = async (socket,localPc,data) => {
+    const {offer,user} = data;
+    console.log("[INFO]sendAnswer",offer,user)
     await localPc.setRemoteDescription(offer)
     const answer = await localPc.createAnswer()
     await localPc.setLocalDescription(answer)
@@ -141,4 +98,4 @@ const sendOffer = async (socket,localPc,user) => {
     return channel
   }
 
-  
+  console.log('[INFO] rtc.js loaded 170959')
