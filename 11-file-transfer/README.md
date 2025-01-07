@@ -29,4 +29,4 @@
 
 效果如图
 
-![demo](./demo-chat.jpeg)
+![demo](./demo-rtc-file.jpeg)

@@ -37,10 +37,18 @@ const rtcConfig = {
     LINK_USER: 'linkuser',
   };
 
+
+  const CHAT_TYPE = {
+    CHAT: 'chat', // 聊天
+    FILE_TRANSFER: 'fileTransfer', // 文件开始传输
+    FINISH_FILE: 'finishTransfer', // 文件完成传输信息
+  }
+
 function creatPeerConn() {
     return new RTCPeerConnection(rtcConfig)
 }
 
+// candidate事件
 function onicecandidateCb(event,socket,pc,user)  {
     console.log('[INFO]onicecandidate:'+pc, event.candidate)
     // 回调时，将自己candidate发给对方，对方可以直接addIceCandidate(candidate)添加可以获取流
@@ -71,7 +79,7 @@ const sendOffer = async (socket,localPc,user) => {
   }
 
   // 创建datachannel
-  function createDataChannel(localConnection,chName,onopenCb, oncloseCb,receiveMessageCb) {
+  function createDataChannel(localConnection,chName,onopenCb, oncloseCb) {
     channel = localConnection.createDataChannel(chName)
     channel.onopen = () => {
       console.log('[INFO] createDataChannel data channel is open')
@@ -85,17 +93,16 @@ const sendOffer = async (socket,localPc,user) => {
         oncloseCb()
       }
     }
-    localConnection.ondatachannel = (event) => {
-      // 成功拿到 RTCDataChannel
-      const dataChannel = event.channel
-      dataChannel.onmessage = (event) => {//receiveMessage(event.data)
-        console.log("[INFO] createDataChannel onmessage:",event.data)
-        if (receiveMessageCb) {
-          receiveMessageCb(event.data)
-        }
-      }
-    }
+    // channel.onmessage = (event) => {
+    //   console.log('[INFO] createDataChannel onmessage:',event.data)
+    // }
     return channel
   }
 
-  console.log('[INFO] rtc.js loaded 170959')
+  // 发送消息:ty chat/fileTransfer
+  function chatSendData(ch,ty,data){
+    const db = { 'type': ty, 'data': data }
+    ch?.send(JSON.stringify(db))
+  }
+
+  console.log('[INFO] rtc.js loaded 250107-1132')
