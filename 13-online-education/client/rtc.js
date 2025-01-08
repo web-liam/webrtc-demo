@@ -3,11 +3,6 @@ const rtcConfig = {
     iceServers: [
       {
         urls: ["stun:stun.l.google.com:19302"]
-      },
-      {
-        urls: ["turn:wangxiang.website:3478"],
-        username: "admin",
-        credential: "admin"
       }
     ]
   };
@@ -106,4 +101,4 @@ const sendOffer = async (socket,localPc,user) => {
     ch?.send(JSON.stringify(db))
   }
 
-  console.log('[INFO] rtc.js loaded 250107-1537')
+  console.log('[INFO] rtc.js loaded 250108-1003')

@@ -58,22 +58,24 @@
     </div>
     </div>
     <div style="margin-top: 10px;clear: both;">
-      <div style="width: 49% ;float: left;height: 100px;border-style: dotted;">
+      <div style="width: 49% ;float: left;height: 200px;border-style: dotted;">
         <label>本地屏幕: </label>
-        <video  style="height: 80px;" id="localScreenVideo" autoplay >
+        <video  style="height: 170px;" id="localScreenVideo" autoplay >
           <source type="video/mp4" />
         </video>
       </div>
-      <div style="width: 49%;float: right;height: 100px;border-style: dotted;">
+      <div style="width: 49%;float: right;height: 200px;border-style: dotted;">
         <label>远程屏幕: </label>
-        <video  style="height: 80px;" id="remoteScreenVideo" autoplay >
+        <video  style="height: 170px;" id="remoteScreenVideo" autoplay >
           <source type="video/mp4" />
         </video>
       </div>
-    <!-- <div><button id="startVideoChat">开始视频</button> <button id="useVideo">使用视频</button>
-    </div> -->
+    <div>
+      <button id="stopScreen">停止屏幕共享</button>
+    </div>
+
   </div>
-  <div>
+  <div style="clear: both;width: 100%;">
     <label>收到消息: </label><br>
     <textarea disabled style="line-height: 1.5; width: 90%;" id="output" rows="4"></textarea>
   </div>

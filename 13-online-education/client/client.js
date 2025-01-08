@@ -12,8 +12,11 @@ const downloadLink = document.getElementById('downloadLink');
 //video
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
-// const startVideoChatButton = document.getElementById('startVideoChat');
-// const useVideoChatButton = document.getElementById('useVideo');
+// screen
+const localScreenVideo = document.getElementById('localScreenVideo');
+const remoteScreenVideo = document.getElementById('remoteScreenVideo');
+const btnStopScreen = document.getElementById('stopScreen');
+
 
 let socket
 let room
@@ -22,12 +25,15 @@ let toUser
 let localPc ;
 let chatChannel ; // 聊天通道
 let fileChannel ; // 文件通道
-let localStream; // 本地流
+let localStream; // 视频本地流
+let localScreenStream; // 屏幕本地流
+let ontrackEventFlag = [0,0,0]; // 音频，远程视频，远程屏幕
 let showRemoteVideo =0; // 远程视频
 let showLocalVideo =0; // 本地视频
 
 btnConnect.onclick = async() => {
   await initVideoChat() //video
+  await initLocalScreen() //screen
   room = document.querySelector('input#room').value
   username = document.querySelector('input#username').value
   let server = document.querySelector('input#wsServer').value
@@ -99,7 +105,7 @@ btnConnect.onclick = async() => {
       console.log(`on-CANDIDATE:接收到${pc}-candidate`, candidate)
       if (username != user.to && username != user.from) return;
       toUser = user.to
-      ontrackEvent(localPc, remoteVideo) //video
+      ontrackEvent(localPc, remoteVideo,remoteScreenVideo) //video
       // 添加ice
       await localPc.addIceCandidate(candidate)
 
@@ -116,7 +122,8 @@ function localConnection(socket,user) {
   }
   chatChannel = createDataChannel(localPc, "chat",null, null)
   fileChannel = createDataChannel(localPc, "file",null, null)
-  peConnAddTrack(localPc,localStream) //video
+  peConnAddTrack(localPc,localStream,"video") //video
+  peConnAddTrack(localPc,localScreenStream,"screen") //screen
   // ondatachannel
   localPc.ondatachannel = (event) => {
     const label = event.channel.label
@@ -155,6 +162,7 @@ function remoteConnection(socket,data) {
   chatChannel = createDataChannel(localPc, "chat",null, null)
   fileChannel = createDataChannel(localPc, "file",null, null)
   peConnAddTrack(localPc,localStream) //video
+  peConnAddTrack(localPc,localScreenStream) //screen
   // ondatachannel
   localPc.ondatachannel = (event) => {
     const label = event.channel.label
@@ -288,31 +296,13 @@ function handleFileReceiveMessage(event) {
 }
 
 // video
-// Start Video Chat
-// startVideoChatButton.onclick = async() => {
-//   await initVideoChat() //video
-//   const msg = { 'room':room, 'from': username, 'to': toUser };
-//   chatSendData(chatChannel,CHAT_TYPE.OPEN_VIDEO, msg);
-//   // peConnAddTrack(localPc,localStream) //video
-//   // ontrackEvent(localPc, remoteVideo) //video
-// };
-
-// useVideoChatButton.onclick = () => {
-//   // openLocalVideo()
-// }
-
-function openLocalVideo(){
-  navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
-      localStream = stream;
-      localVideo.srcObject = stream;
-      console.log('[INFO]Video chat started.');
-  }).catch((error) => {
-    console.log(`[Error] accessing media devices: ${error.message}`);
-  });
+btnStopScreen.onclick = () => {
+  console.log('[INFO] stopScreenSharing')
+  stopScreenSharing()
 }
 
 // addTrack(localPc,localStream)
-function peConnAddTrack(peConn,stream) {
+function peConnAddTrack(peConn,stream,ty='video') {
   if (!stream){
     console.log('[Error] addTrack stream is null')
     return
@@ -321,8 +311,28 @@ function peConnAddTrack(peConn,stream) {
     peConn.addTrack(track, stream);
     console.log('[INFO]Video chat getTracks :',track);
   });
+  if (ty === 'screen') {
+    stream.getVideoTracks()[0].onended = () => stopScreenSharing();
+  }
 }
 
+// 本地屏幕 shareScreen
+async function initLocalScreen() {
+  let screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+  if (!screenStream) {
+    console.log('[Error] shareScreen screenStream is null')
+    return
+  }
+  if (!localScreenVideo) {
+    console.log('[Error] shareScreen localScreenVideo is null')
+    return
+  }
+  localScreenVideo.srcObject = screenStream
+  localScreenStream = screenStream
+  console.log('[INFO] shareScreen Video chat started.');
+}
+
+// 本地视频
 async function initVideoChat() {
   let config = { video: true, audio: true }
   let stream = await navigator.mediaDevices.getUserMedia(config)
@@ -339,15 +349,49 @@ async function initVideoChat() {
   console.log('[INFO] initVideoChat Video chat started.');
 }
 
-function ontrackEvent(peConn, video) {
+// 显示远程视频
+function ontrackEvent(peConn, video,screen) {
   // video 回调显示
   peConn.ontrack = (event) => {
-    console.log('[INFO]ontrackEvent Connection.ontrack ')
-    if (!video.srcObject) {
-      video.srcObject = event.streams[0];
-      video.oncanplay = () => video.play()
+    console.log('[INFO]ontrackEvent Connection.ontrack ', event)
+    // if (!video.srcObject) {
+    //   video.srcObject = event.streams[0]; 
+    //   video.oncanplay = () => video.play() 
+    // } // audio
+    const [stream] = event.streams;
+    const kind = event.track.kind;
+    if (kind === 'audio') {
+      video.srcObject = stream;
+      ontrackEventFlag[0] = 1;
+    }
+    if (kind === 'video') {
+      if (ontrackEventFlag[1] == 0) {
+        video.srcObject = stream;
+        ontrackEventFlag[1]=1;
+      }else{
+        screen.srcObject = stream;
+        ontrackEventFlag[2] = 1;
+      }
     }
   }
 }
 
-console.log('[INFO] client.js loaded 250108-0910')
+
+// screen stop
+function stopScreenSharing() {
+  if (localScreenStream) {
+      const screenTracks = localScreenStream.getTracks();
+      screenTracks.forEach(track => track.stop());
+      // Remove the screen sharing tracks from the peer connection
+      localScreenStream.getTracks().forEach(track => {
+          const sender = localPc.getSenders().find(s => s.track === track);
+          if (sender) {
+            localPc.removeTrack(sender);
+          }
+      });
+      localScreenVideo.srcObject = null;
+      localScreenStream = null;
+  }
+}
+
+console.log('[INFO] client.js loaded 250108-1158')

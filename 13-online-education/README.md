@@ -26,4 +26,4 @@
 
 效果如图
 
-![demo](./demo-rtc-file.jpeg)
+![demo](./demo-education.jpeg)
