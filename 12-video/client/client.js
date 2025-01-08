@@ -26,7 +26,7 @@ let localStream; // 本地流
 let remoteVideoOpen =0; // 远程流
 
 btnConnect.onclick = async() => {
-  await initVideoChat()
+  await initVideoChat() //video
   room = document.querySelector('input#room').value
   username = document.querySelector('input#username').value
   let server = document.querySelector('input#wsServer').value
@@ -98,7 +98,7 @@ btnConnect.onclick = async() => {
       console.log(`on-CANDIDATE:接收到${pc}-candidate`, candidate)
       if (username != user.to && username != user.from) return;
       toUser = user.to
-      // 回调显示
+      // video 回调显示
       localPc.ontrack = (event) => {
         console.log('[INFO]Connection.ontrack 3')
         if (!remoteVideo.srcObject) {
@@ -122,7 +122,7 @@ function localConnection(socket,user) {
   }
   chatChannel = createDataChannel(localPc, "chat",null, null)
   fileChannel = createDataChannel(localPc, "file",null, null)
-  peConnAddTrack(localPc,localStream)
+  peConnAddTrack(localPc,localStream) //video
   // ondatachannel
   localPc.ondatachannel = (event) => {
     const label = event.channel.label
@@ -143,7 +143,6 @@ function localConnection(socket,user) {
   // video
   // sendOffer
   sendOffer(socket,localPc,user)
-  
   //
 }
 
@@ -161,7 +160,7 @@ function remoteConnection(socket,data) {
   }
   chatChannel = createDataChannel(localPc, "chat",null, null)
   fileChannel = createDataChannel(localPc, "file",null, null)
-  peConnAddTrack(localPc,localStream)
+  peConnAddTrack(localPc,localStream) //video
   // ondatachannel
   localPc.ondatachannel = (event) => {
     const label = event.channel.label
@@ -179,10 +178,8 @@ function remoteConnection(socket,data) {
         remoteFileChannel.onclose = () => console.log('File channel (remote) is closed.');
     }
   }
-  // video
   // sendAnswer
   sendAnswer(socket,localPc,data)
-  
   // 
 }
 
