@@ -23,7 +23,8 @@ let localPc ;
 let chatChannel ; // 聊天通道
 let fileChannel ; // 文件通道
 let localStream; // 本地流
-let remoteVideoOpen =0; // 远程流
+let showRemoteVideo =0; // 远程视频
+let showLocalVideo =0; // 本地视频
 
 btnConnect.onclick = async() => {
   await initVideoChat() //video
@@ -98,14 +99,7 @@ btnConnect.onclick = async() => {
       console.log(`on-CANDIDATE:接收到${pc}-candidate`, candidate)
       if (username != user.to && username != user.from) return;
       toUser = user.to
-      // video 回调显示
-      localPc.ontrack = (event) => {
-        console.log('[INFO]Connection.ontrack 3')
-        if (!remoteVideo.srcObject) {
-            remoteVideo.srcObject = event.streams[0];
-            remoteVideo.oncanplay = () => remoteVideo.play()
-        }
-      }
+      ontrackEvent(localPc, remoteVideo) //video
       // 添加ice
       await localPc.addIceCandidate(candidate)
 
@@ -208,7 +202,7 @@ btnLinkP2p.onclick = () => {
   localConnection(socket,user)
 }
 
-function handleChatReceiveMessage(event) {
+async function handleChatReceiveMessage(event) {
   let data = event.data
   console.log('[INFO] handleChatReceiveMessage:', data)
   let db = JSON.parse(data)
@@ -222,8 +216,9 @@ function handleChatReceiveMessage(event) {
     console.log('[INFO] handleChatReceiveMessage FINISH_FILE:', db.data)
   }else if (db.type === CHAT_TYPE.OPEN_VIDEO) {
     console.log('[INFO] handleChatReceiveMessage OPEN_VIDEO:', db.data)
-    // openLocalVideo()
-    // peConnAddTrack(localPc,localStream)
+    //await initVideoChat() //video
+    //peConnAddTrack(localPc,localStream) //video
+    //ontrackEvent(localPc, remoteVideo) //video
   }
   const outputArea = document.querySelector('textarea#output')
   outputArea.scrollTop = outputArea.scrollHeight //窗口总是显示最后的内容
@@ -294,11 +289,12 @@ function handleFileReceiveMessage(event) {
 
 // video
 // Start Video Chat
-startVideoChatButton.onclick = () => {
+startVideoChatButton.onclick = async() => {
+  await initVideoChat() //video
   const msg = { 'room':room, 'from': username, 'to': toUser };
   chatSendData(chatChannel,CHAT_TYPE.OPEN_VIDEO, msg);
-  // openLocalVideo()
-  // peConnAddTrack(localPc,localStream)
+  // peConnAddTrack(localPc,localStream) //video
+  // ontrackEvent(localPc, remoteVideo) //video
 };
 
 useVideoChatButton.onclick = () => {
@@ -321,26 +317,37 @@ function peConnAddTrack(peConn,stream) {
     console.log('[Error] addTrack stream is null')
     return
   }
-  // peConn.ontrack = (event) => { // onaddstream , ontrack
-  //   console.log('[INFO]Connection.ontrack 4')
-  //   if (!remoteVideo.srcObject) {
-  //       remoteVideo.srcObject = event.streams[0];
-  //       remoteVideo.oncanplay = () => remoteVideo.play()
-  //   }
-  // }
   stream.getTracks().forEach(track => {
     peConn.addTrack(track, stream);
     console.log('[INFO]Video chat getTracks :',track);
   });
-
 }
 
 async function initVideoChat() {
   let config = { video: true, audio: true }
   let stream = await navigator.mediaDevices.getUserMedia(config)
+  if (!stream) {
+    console.log('[Error] initVideoChat stream is null')
+    return
+  }
+  if (!localVideo) {
+    console.log('[Error] initVideoChat localVideo is null')
+    return
+  }
   localVideo.srcObject = stream
   localStream = stream
   console.log('[INFO] initVideoChat Video chat started.');
 }
 
-console.log('[INFO] client.js loaded 250107-1523')
+function ontrackEvent(peConn, video) {
+  // video 回调显示
+  peConn.ontrack = (event) => {
+    console.log('[INFO]ontrackEvent Connection.ontrack ')
+    if (!video.srcObject) {
+      video.srcObject = event.streams[0];
+      video.oncanplay = () => video.play()
+    }
+  }
+}
+
+console.log('[INFO] client.js loaded 250108-0910')
