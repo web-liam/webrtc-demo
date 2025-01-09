@@ -19,10 +19,11 @@ var (
 		},
 	}
 
-	rooms     = make(map[string]map[*ConnItem]bool) // 房间 -> (ConnItem -> bool)
-	userLists = make(map[string][]string)           // 房间 -> 在线用户列表
-	broadcast = make(chan Message)
-	mutex     = sync.Mutex{}
+	rooms        = make(map[string]map[*ConnItem]bool) // 房间 -> (ConnItem -> bool)
+	userLists    = make(map[string][]string)           // 房间 -> 在线用户列表
+	broadcast    = make(chan Message)
+	mutex        = sync.Mutex{}
+	userListType = "userlist"
 )
 
 // Message 定义信令消息结构
@@ -71,17 +72,18 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	}
 	connItem := &ConnItem{Conn: conn, Uid: uid}
 	addConnectionToRoom(room, connItem)
-	BroadcastUserList(room, "userlist")
-	fmt.Printf("[INFO] %s 新客户端加入房间 %s: %s \n", uid, room, conn.RemoteAddr())
+	BroadcastUserList(room, userListType)
+	fmt.Printf("[INFO] 新客户端 [%s] 加入房间 %s: %s \n", uid, room, conn.RemoteAddr())
 	// 读取客户端消息并广播
 	for {
 		var msg Message
 		if err := conn.ReadJSON(&msg); err != nil {
 			fmt.Printf("[ERROR] 房间 %s 的,【%s】客户端断开: %s \n", room, connItem.Uid, conn.RemoteAddr())
 			handleDisconnection(connItem, room)
-			BroadcastUserList(room, "userlist")
+			BroadcastUserList(room, userListType)
 			break
 		}
+		msg.Room = room
 		msg.Uid = connItem.Uid
 		broadcast <- msg
 	}
@@ -151,7 +153,7 @@ func BroadcastUserList(room string, ty string) {
 			Type: ty, //"userlist",
 			Data: userList,
 			Room: room,
-			Uid:  "",
+			Uid:  "0",
 		}
 		if connItems, ok := rooms[room]; ok {
 			for connItem := range connItems {

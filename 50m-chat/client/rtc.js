@@ -45,11 +45,15 @@ function newPeerConn() {
   return new RTCPeerConnection(rtcConfig)
 }
 
+function socketEmit(type, room, data) {
+  sendWsMsg(socket, room, data, type, uid);
+}
+
 function onicecandidateEvent(event, socket, linkInfo, pc) {
   console.log('[INFO]onicecandidateEvent:' + pc, event.candidate, event)
   // 回调时，将自己candidate发给对方，对方可以直接addIceCandidate(candidate)添加可以获取流
   if (event.candidate)
-    socket.emit(SOCKET_ON_RTC.CANDIDATE, linkInfo.room, {
+    socketEmit(SOCKET_ON_RTC.CANDIDATE, linkInfo.room, {
       pc: pc,// 'local',
       candidate: event.candidate,
       user: linkInfo,
@@ -63,7 +67,7 @@ const sendOffer = async (socket, peer, linkInfo) => {
   // 建立连接，此时就会触发onicecandidate，然后注册ontrack
   await peer.setLocalDescription(offer)
   let room = linkInfo.room;
-  socket.emit(SOCKET_ON_RTC.OFFER, room, { "offer": offer, "user": linkInfo })
+  socketEmit(SOCKET_ON_RTC.OFFER, room, { "offer": offer, "user": linkInfo })
 }
 
 const sendAnswer = async (socket, peer, data) => {
@@ -73,7 +77,7 @@ const sendAnswer = async (socket, peer, data) => {
   const answer = await peer.createAnswer()
   await peer.setLocalDescription(answer)
   let room = user.room;
-  socket.emit(SOCKET_ON_RTC.ANSWER, room, {"answer":answer,"user":user})
+  socketEmit(SOCKET_ON_RTC.ANSWER, room, {"answer":answer,"user":user})
 }
 
 // 创建datachannel
@@ -93,3 +97,5 @@ function createDataChannel(localConnection, chName, onopenCb, oncloseCb) {
   }
   return channel
 }
+
+console.log('rtc.js loaded:-250108-1619');

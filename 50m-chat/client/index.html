@@ -9,7 +9,7 @@
   <h1>RTC Chat Demo</h1>
   <div>
     <label>服务器: </label>
-    <input type=text id="wsServer" value="http://localhost:3338" style="width: 500px;"></input>
+    <input type=text id="wsServer" value="ws://127.0.0.1:3337/ws-rtc" style="width: 500px;"></input>
   </div>
   <div>
     <label>用户名: </label>
@@ -43,7 +43,7 @@
   <div>
     <button id="send">发送</button>
   </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+  <script src="./websocket.js"></script>
   <script src="./rtc.js"></script>
   <script src="./client.js"></script>
 </body>

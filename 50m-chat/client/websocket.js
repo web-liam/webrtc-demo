@@ -1,7 +1,9 @@
 
 
-// url = "ws://localhost:3337/ws-rtc?room=1"
-function WebSocketClient(url) {
+// url = "ws://localhost:3337/ws-rtc?room=1&uid=1"
+function WebSocketClient(url,onmessage) {
+    this.url = url;
+    this.socket = null;
     // 连接 WebSocket 信令服务器
     const socket = new WebSocket(url);
     socket.onopen = () => {
@@ -15,30 +17,17 @@ function WebSocketClient(url) {
     }
     socket.onmessage = (message) => {
         const data = JSON.parse(message.data);
-        switch (data.type) {
-            case "userlist":
-                handleOffer(data.offer, data.sender);
-                break;
-            case "offer":
-                handleOffer(data.offer, data.sender);
-                break;
-            case "answer":
-                handleAnswer(data.answer, data.sender);
-                break;
-            case "candidate":
-                handleCandidate(data.candidate, data.sender);
-                break;
-            case "new-peer":
-                createPeerConnection(data.sender);
-                break;
+        if (onmessage){
+            onmessage(data);
         }
     };
-    // 通知服务器有新用户加入
-    // socket.send(JSON.stringify({ type: "join" }));
+    return socket;
 }
 
-// 通知服务器有新用户加入
-function newUser(socket,uid, room) {
-    let data = { "type": "join", "data": {"uid":uid,"room":room}, "room": room  };
-    socket.send(JSON.stringify(data));
+function sendWsMsg(socket,room,data,ty,uid) {
+    let msg = { "type":ty, "data": data, "room": room , "sid":uid};
+    socket.send(JSON.stringify(msg));
 }
+
+
+console.log('ws.js loaded:-250108-1619');
