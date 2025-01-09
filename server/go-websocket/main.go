@@ -17,7 +17,8 @@ var (
 			return true
 		},
 	}
-	clients   = make(map[*websocket.Conn]bool)
+	// clients   = make(map[*websocket.Conn]bool)
+	rooms     = make(map[string]map[*websocket.Conn]bool) // 客户端连接与房间映射
 	broadcast = make(chan Message)
 	mutex     = sync.Mutex{}
 )
@@ -52,24 +53,38 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+	// 从 URL 参数获取房间号
+	room := r.URL.Query().Get("room")
+	if room == "" {
+		fmt.Println("[ERROR]房间号缺失，关闭连接")
+		return
+	}
+
 	// 将新客户端加入到连接列表
 	mutex.Lock()
-	clients[conn] = true
+	if _, ok := rooms[room]; !ok {
+		rooms[room] = make(map[*websocket.Conn]bool)
+	}
+	rooms[room][conn] = true
+	// clients[conn] = true
 	mutex.Unlock()
 
-	fmt.Println("[INFO]新客户端连接:", conn.RemoteAddr())
+	fmt.Printf("新客户端加入房间 %s: %s\n", room, conn.RemoteAddr())
 
 	// 读取客户端消息并广播
 	for {
 		var msg Message
 		err := conn.ReadJSON(&msg)
 		if err != nil {
-			fmt.Println("[ERROR]读取消息失败:", err)
+			fmt.Printf("[ERROR]房间 %s 的客户端断开: %s\n", room, conn.RemoteAddr())
 			mutex.Lock()
-			delete(clients, conn)
+			delete(rooms[room], conn)
+			// delete(clients, conn)
 			mutex.Unlock()
 			break
 		}
+		// 确保消息的房间号一致
+		msg.Room = room
 		broadcast <- msg
 	}
 }
@@ -78,13 +93,15 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 func handleMessages() {
 	for {
 		msg := <-broadcast
+		room := msg.Room
 		mutex.Lock()
-		for client := range clients {
+		for client := range rooms[room] {
 			err := client.WriteJSON(msg)
 			if err != nil {
 				fmt.Println("[ERROR]消息发送失败:", err)
 				client.Close()
-				delete(clients, client)
+				delete(rooms[room], client)
+				// delete(clients, client)
 			}
 			fmt.Println("[INFO]消息发送:", msg)
 		}
