@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RTC Chat Demo</title>
+</head>
+<body>
+  <h1>RTC Chat Demo</h1>
+  <div>
+    <label>服务器: </label>
+    <input type=text id="wsServer" value="http://localhost:3338" style="width: 500px;"></input>
+  </div>
+  <div>
+    <label>用户名: </label>
+    <input type=text id="username" value="user1"></input>
+    <label>房间: </label>
+    <input type=text id="room" value="1"></input>
+    <button id="connect">连接服务器</button>
+    <button id="leave" disabled>断开服务器</button>
+  </div>
+  <div>
+    <label>在线用户: </label>
+    <div id="users" style="font-size: 12px;"></div>
+  </div>
+  <div>
+    <label>链接用户: </label>
+    <input type=text id="linkuser" value="user2"></input>
+    <button id="linkP2p">连接P2P</button>
+    <button id="leaveP2p" disabled>断开P2P</button>
+  </div>
+    <div>
+    <label>已接受链接用户: </label>
+    <div id="linkUsers" style="font-size: 12px;"></div>
+  <div>
+    <label>收到消息: </label><br>
+    <textarea disabled style="line-height: 1.5;" id="output" rows="10" cols="60"></textarea>
+  </div>
+  <div>
+    <label>发送消息: </label><br>
+    <textarea disabled id="input" rows="3" cols="60"></textarea>
+  </div>
+  <div>
+    <button id="send">发送</button>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+  <script src="./rtc.js"></script>
+  <script src="./client.js"></script>
+</body>
+</html>
