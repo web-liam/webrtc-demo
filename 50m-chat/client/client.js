@@ -38,9 +38,9 @@ function onmessage(db) {
     case SOCKET_ON_RTC.CANDIDATE:
       handleCandidate(db);
       break;
-    // case "new-peer":
-    //   createPeerConnection(data.sender);
-    //   break;
+    case SOCKET_EMIT.LINK_USER:
+      handleLinkuser(db);
+      break;
   }
 }
 // 通知服务器有新用户加入

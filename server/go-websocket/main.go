@@ -113,7 +113,7 @@ func handleMessages() {
 					handleDisconnection(connItem, room)
 				}
 			}
-			fmt.Printf("[INFO] 消息发送: %+v\n", msg)
+			fmt.Printf("[INFO] 消息来自: %+v\n", msg.Uid)
 		}
 		mutex.Unlock()
 	}
