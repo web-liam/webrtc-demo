@@ -1,12 +1,7 @@
 
 
-// url = "ws://localhost:3337"
+// url = "ws://localhost:3337/ws-rtc?room=1"
 function WebSocketClient(url) {
-    this.connection = null;
-    this.onmessage = null;
-    this.onopen = null;
-    this.onclose = null;
-    this.onerror = null;
     // 连接 WebSocket 信令服务器
     const socket = new WebSocket(url);
     socket.onopen = () => {
@@ -18,7 +13,6 @@ function WebSocketClient(url) {
     socket.onerror = (error) => {
         console.log("[ERROR]连接错误", error);
     }
-    
     socket.onmessage = (message) => {
         const data = JSON.parse(message.data);
         switch (data.type) {
@@ -40,6 +34,11 @@ function WebSocketClient(url) {
         }
     };
     // 通知服务器有新用户加入
-    socket.send(JSON.stringify({ type: "join" }));
+    // socket.send(JSON.stringify({ type: "join" }));
 }
 
+// 通知服务器有新用户加入
+function newUser(socket,uid, room) {
+    let data = { "type": "join", "data": {"uid":uid,"room":room}, "room": room  };
+    socket.send(JSON.stringify(data));
+}
