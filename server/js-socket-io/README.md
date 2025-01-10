@@ -15,3 +15,9 @@
    yarn serve
    ```
 
+## docker
+
+```shell
+   docker-compose up -d
+   docker-compose down
+```

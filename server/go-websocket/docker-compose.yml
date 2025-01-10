@@ -1,0 +1,30 @@
+version: '3'
+services:
+  ws-rct:
+    restart: always
+    image: alpine:latest
+    container_name: ws-rct-dev
+    stdin_open: true
+    tty: true
+    ports:
+      - "3337:3337"
+    environment:
+      PROJECT_ENV: dev 
+    volumes:
+      - $HOME/db/docker/build:/workspace
+    working_dir: /workspace
+    # command: ["/bin/bash"]
+    command: ["sh","-c","chmod +x ./linux-ws-rtc && ./linux-ws-rtc"]
+
+    ## other:
+    # cd docker-compose.yml filePath
+    # docker-compose up -d
+    # docker-compose down
+    # docker ps
+    # docker container exec -it ws-rct-dev /bin/sh
+    # cd log
+    # ls
+    # cat d-2019-09-24-2.log -n
+    
+    #/etc/hosts
+    # 127.0.0.1  platforms-test.xx.com

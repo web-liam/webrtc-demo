@@ -1,0 +1,30 @@
+version: '3'
+services:
+  node-rtc:
+    restart: always
+    image: node:18.17
+    container_name: node-rtc
+    stdin_open: true
+    tty: true
+    ports:
+      - "3338:3338"
+    environment:
+      PROJECT_ENV: dev 
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    # command: ["/bin/bash"]
+    command: ["sh", "-c", "npm install && npm run serve"]
+
+    ## other:
+    # cd docker-compose.yml filePath
+    # docker-compose up -d
+    # docker-compose down
+    # docker ps
+    # docker container exec -it ws-rct-dev /bin/sh
+    # cd log
+    # ls
+    # cat d-2019-09-24-2.log -n
+    
+    #/etc/hosts
+    # 127.0.0.1  platforms-test.xx.com
